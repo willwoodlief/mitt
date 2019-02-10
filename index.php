@@ -47,8 +47,8 @@
 			<form id="msform" method="post" action="script.php" enctype="multipart/form-data">
 				<!-- progressbar -->
 				<ul id="progressbar">
-					<li class="active">File 1</li>
-					<li>File 2</li>
+					<li class="active">Original Class Report</li>
+					<li>Current Period Registration</li>
 				</ul>
 				<!-- fieldsets -->
 				<fieldset class="section-a">

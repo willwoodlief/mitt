@@ -52,8 +52,7 @@
 				</ul>
 				<!-- fieldsets -->
 				<fieldset class="section-a">
-					<h2 class="fs-title">File Upload 1 (XLS, XLSX or CSV)</h2>
-					<h3 class="fs-subtitle">This is the file which will be used to compare <strong>File 2</strong> against.</h3>
+					<h2 class="fs-title">Original Class Report (XLS, XLSX or CSV)</h2>
                     <input type="file" name="form_file"/>
                     <div>
                     <?php foreach ($fields as $field) { ?>
@@ -85,8 +84,7 @@
 					<input type="button" name="next" class="next action-button" data-section="a" value="Next"/>
 				</fieldset>
 				<fieldset class="section-b">
-					<h2 class="fs-title">File Upload 2 (XLS, XLSX or CSV)</h2>
-					<h3 class="fs-subtitle">This is the file from which Records (rows) will be removed if there is a match in Tel Number with <strong>CSV 1.</strong></h3>
+					<h2 class="fs-title">Current Period Registration Report (XLS, XLSX or CSV)</h2>
                     <input type="file" class="to_file" name="to_file"/>
                     <input type="text" class="form-control" name="to_file_name" placeholder="Please Enter the new name of output file (if you want to use the original one just ignore this field)" />
 

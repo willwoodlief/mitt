@@ -1,3 +1,10 @@
+<?php
+$errors = '';
+if ($_POST) {
+	require_once 'script.php';
+	$errors = do_stuff(); //may or may not exit
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,13 +27,15 @@
 </head>
 <?php
     $fields = [
-        ['start'=> 2, 'name'=>'First Name'],
-        ['start'=> 1, 'name'=>'Last Name'],
-	    ['start'=> 3, 'name'=>'Email'],
-        ['start'=> 10, 'name'=>'Phone'],
-        ['start'=> 17, 'name'=>'Course'],
-        ['start'=> 22, 'name'=>'Discipline'],
-        ['start'=> 26, 'name'=>'Options']
+        ['start'=> 'C', 'name'=>'First Name','element'=>'first_name'],
+        ['start'=> 'B', 'name'=>'Last Name','element'=>'last_name'],
+	    ['start'=> 'D', 'name'=>'Email','element'=>'email'],
+        ['start'=> 'K', 'name'=>'Phone','element'=>'phone'],
+        ['start'=> 'R', 'name'=>'Course','element'=>'course'],
+	    ['start'=> 'S', 'name'=>'Class Date','element'=>'class_date'],
+        ['start'=> 'T', 'name'=>'Class Location','element'=>'class_location'],
+	    ['start'=> 'W', 'name'=>'Discipline','element'=>'discipline'],
+        ['start'=> 'AA', 'name'=>'Options','element'=>'options']
     ];
 
     $options = [];
@@ -36,15 +45,24 @@
         if ($i >=26) {
 	        $character = 'A' . $character;
         }
-        $options[] = $character;
+        $options[$character] = $character;
     }
 
 ?>
 <body>
+    <?php if ($errors): ?>
+    <div class="row">
+        <div class="col-md-offset-3 col-md-6">
+            <pre>
+                <?= $errors ?>
+            </pre>
+        </div>
+    </div>
+    <?php endif; ?>
 	<!-- MultiStep Form -->
 	<div class="row">
 		<div class="col-md-6 col-md-offset-3">
-			<form id="msform" method="post" action="script.php" enctype="multipart/form-data">
+			<form id="msform" method="post" action="index.php" enctype="multipart/form-data" target="_blank">
 				<!-- progressbar -->
 				<ul id="progressbar">
 					<li class="active">ORIGINAL CLASS REPORT</li>
@@ -53,17 +71,17 @@
 				<!-- fieldsets -->
 				<fieldset class="section-a">
 					<h2 class="fs-title">Original Class Report (XLS, XLSX or CSV)</h2>
-                    <input type="file" name="form_file"/>
+                    <input type="file" name="file1"/>
                     <div>
                     <?php foreach ($fields as $field) { ?>
                         <div class="form-group" style="text-align: left">
-                            <label style="margin-left: 0.5em" for="from_file1_column_<?= strtolower(str_replace(' ','_',$field['name'])) ?>">
+                            <label style="margin-left: 0.5em" for="columns[file1][<?= $field['element'] ?>]">
                                 <?= strtoupper($field['name']) ?> Column
                             </label>
                             <select
                                     class="form-control" style="padding-top: 0; padding-bottom: 0"
-                                    id="from_file1_column_<?= strtolower(str_replace(' ','_',$field['name'])) ?>"
-                                    name="from_file1_column_<?= strtolower(str_replace(' ','_',$field['name'])) ?>">
+                                    id="columns[file1][<?= $field['element'] ?>]"
+                                    name="columns[file1][<?= $field['element'] ?>]">
                                 <option  disabled value="-1"><?= strtoupper($field['name']) ?>: Column in CSV 1</option>
                                 <?php
 
@@ -85,19 +103,19 @@
 				</fieldset>
 				<fieldset class="section-b">
 					<h2 class="fs-title">Current Period Registration Report (XLS, XLSX or CSV)</h2>
-                    <input type="file" class="to_file" name="to_file"/>
-                    <input type="text" class="form-control" name="to_file_name" placeholder="Please Enter the new name of output file (if you want to use the original one just ignore this field)" />
+                    <input type="file" class="to_file" name="file2"/>
+                    <input type="text" class="form-control" name="out_file_name" placeholder="Please Enter the new name of output file" />
 
                     <div>
 						<?php foreach ($fields as $field) { ?>
                             <div class="form-group" style="text-align: left">
-                                <label  style="margin-left: 0.5em" for="from_file2_column_<?= strtolower(str_replace(' ','_',$field['name'])) ?>">
+                                <label  style="margin-left: 0.5em" for="columns[file2][<?= $field['element'] ?>]">
 									<?= strtoupper($field['name']) ?> Column
                                 </label>
                                 <select
                                         class="form-control" style="padding-top: 0; padding-bottom: 0"
-                                        id="from_file2_column_<?= strtolower(str_replace(' ','_',$field['name'])) ?>"
-                                        name="from_file2_column_<?= strtolower(str_replace(' ','_',$field['name'])) ?>">
+                                        id="columns[file2][<?= $field['element'] ?>]"
+                                        name="columns[file2][<?= $field['element'] ?>]">
                                     <option  disabled value="-1"><?= strtoupper($field['name']) ?>: Column in CSV 1</option>
 									<?php
 

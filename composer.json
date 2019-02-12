@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.6",
+        "giggsey/libphonenumber-for-php": "^8.10"
+    }
+}

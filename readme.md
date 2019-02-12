@@ -1,5 +1,10 @@
-ini_set( 'log_errors', 1 );
-ini_set( 'error_log', WP_CONTENT_DIR . '/debug.log' );
+Notes:
+
+need to enable ZipArchive
+apt-get install php7.0-zip
+
+After installing with composer, make the following change
+see https://github.com/PHPOffice/PhpSpreadsheet/pull/845 to know when to stop doing this
 
 vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Reader/Csv.php
 line 258

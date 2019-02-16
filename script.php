@@ -427,7 +427,7 @@ function do_stuff() {
 				if ($start->second === 59) {
 					$start->addSecond(1); //rounding from spreadsheet
 				}
-				$org_class_date = $start->format('m/d/Y H:i:s');
+				$org_class_date = $start->format('m/d/Y H:i');
 			} else {
 				$org_class_date = '';
 			}
@@ -481,7 +481,7 @@ function do_stuff() {
 				if ($start->second === 59) {
 					$start->addSecond(1); //rounding from spreadsheet
 				}
-				$org_class_date = $start->format('m/d/Y H:i:s');
+				$org_class_date = $start->format('m/d/Y H:i');
 			} else {
 				$org_class_date = '';
 			}

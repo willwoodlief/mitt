@@ -19,3 +19,8 @@ see https://github.com/PHPOffice/PhpSpreadsheet/pull/845 to know when to stop do
     $line = preg_replace('/(' . $enclosure . '.*' . $enclosure . ')/Us', '', $line);
 
 to allow using newlines inside csv fields
+
+
+
+spreadsheet docs
+https://phpspreadsheet.readthedocs.io/en/develop/#software-requirements

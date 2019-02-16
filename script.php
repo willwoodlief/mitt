@@ -10,10 +10,14 @@ ini_set( 'log_errors', 1 );
 $debug_log_path = __DIR__ . '/debug.log';
 ini_set( 'error_log',$debug_log_path  );
 
+
+
+use Carbon\Carbon;
 /**
  * @return string
  */
 function do_stuff() {
+	$timezone = 'America/Los_Angeles';
 	try {
 		$from_file     = $_FILES['file1']['tmp_name'];
 		$to_file       = $_FILES['file2']['tmp_name'];
@@ -135,6 +139,7 @@ function do_stuff() {
 
 
 		$temp_dir = tempdir(null,'tmp_save_sheets_',0777);
+		$phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
 
 		/** Create a new Spreadsheet Object **/
 		$common_spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -186,6 +191,18 @@ function do_stuff() {
 		$common_spreadsheet->getActiveSheet()->setCellValue("$out_original_options_column$row",'Original Options');
 		$common_spreadsheet->getActiveSheet()->setCellValue("$out_current_options_column$row",'Current Options');
 
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('C')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('D')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('H')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('I')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('J')->setAutoSize(true);
+		$common_spreadsheet->getActiveSheet()->getColumnDimension('K')->setAutoSize(true);
+
 
 		foreach ($common as $original => $current) {
 			$row++;
@@ -193,15 +210,68 @@ function do_stuff() {
 			$lname = $file1->getActiveSheet()->getCell($org_lname_column.$original);
 			$email = $file1->getActiveSheet()->getCell($org_email_column.$original);
 			$phone = $file1->getActiveSheet()->getCell($org_phone_column.$original);
+
+			if (!empty((string)$phone)) {
+				try {
+					$phoneNumberObject = $phoneNumberUtil->parse( (string)$phone, 'US' );
+					$phone = $phoneNumberUtil->format( $phoneNumberObject, \libphonenumber\PhoneNumberFormat::NATIONAL );
+				} catch (\libphonenumber\NumberParseException $e) {
+					//do nothing, just do not format the number, sometimes other things are in the phone column
+
+				}
+			}
 			$disc  = $file1->getActiveSheet()->getCell($org_disc_column.$original);
 
-			$org_class_date  = $file1->getActiveSheet()->getCell($org_class_date_column.$original)->getFormattedValue();
+
 			$org_class_location  = $file1->getActiveSheet()->getCell($org_class_location_column.$original);
 			$org_options  = $file1->getActiveSheet()->getCell($org_options_column.$original);
 
-			$cur_class_date  = $file2->getActiveSheet()->getCell($cur_class_date_column.$current)->getFormattedValue();
+
 			$cur_class_location  = $file2->getActiveSheet()->getCell($cur_class_location_column.$current);
 			$cur_options  = $file2->getActiveSheet()->getCell($cur_options_column.$current);
+
+			$org_class_date_raw  = (string)$file1->getActiveSheet()->getCell($org_class_date_column.$original)->getFormattedValue();
+			$cur_class_date_raw  = (string)$file2->getActiveSheet()->getCell($cur_class_date_column.$current)->getFormattedValue();
+
+			if (is_numeric($org_class_date_raw)) {
+				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($org_class_date_raw);
+				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$org_class_date = $start->format('m/d/Y H:i');
+			} else if ($org_class_date_raw) {
+
+				$start = Carbon::parse($org_class_date_raw,$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$org_class_date = $start->format('m/d/Y H:i:s');
+
+			} else {
+				$org_class_date = '';
+			}
+
+
+			if (is_numeric($cur_class_date_raw)) {
+				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($cur_class_date_raw);
+				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$cur_class_date = $start->format('m/d/Y H:i');
+
+			} else if ($cur_class_date_raw) {
+
+				$start = Carbon::parse($cur_class_date_raw,$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$cur_class_date = $start->format('m/d/Y H:i');
+			} else {
+				$cur_class_date = '';
+			}
+
 
 			$common_spreadsheet->getActiveSheet()->setCellValue($out_fname_column.$row,$fname);
 			$common_spreadsheet->getActiveSheet()->setCellValue("$out_lname_column$row",$lname);
@@ -242,13 +312,13 @@ function do_stuff() {
 			$writer->setEnclosure('"');
 			$writer->setLineEnding("\n");
 			$writer->setSheetIndex(0);
-			$common_file_name = "$out_file_name.common.csv";
+			$common_file_name = "renewed.csv";
 			$common_file_path = "$temp_dir/$common_file_name";
 			$writer->save($common_file_path);
 		} else {
 			//make a spreadsheet
 			$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($common_spreadsheet);
-			$common_file_name = "$out_file_name.common.xlsx";
+			$common_file_name = "renewed.xlsx";
 			$common_file_path = "$temp_dir/$common_file_name";
 			$writer->save($common_file_path);
 		}
@@ -295,6 +365,12 @@ function do_stuff() {
 		$org_options_column  = $file1_columns['options'];
 
 
+
+
+
+		//$org_class_column = $file1_columns['course'];
+
+
 		$row = 1;
 		$sep_spreadsheet->getActiveSheet()->setCellValue("$out_fname_column$row",'First Name');
 		$sep_spreadsheet->getActiveSheet()->setCellValue("$out_lname_column$row",'Last Name');
@@ -306,17 +382,55 @@ function do_stuff() {
 		$sep_spreadsheet->getActiveSheet()->setCellValue("$out_original_options_column$row",'Options');
 
 
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('C')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('D')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
+		$sep_spreadsheet->getActiveSheet()->getColumnDimension('H')->setAutoSize(true);
+
+
 		foreach ($file1_only as $current => $b_always_true) {
 			$row++;
 			$fname = $file1->getActiveSheet()->getCell($org_fname_column.$current);
 			$lname = $file1->getActiveSheet()->getCell($org_lname_column.$current);
 			$email = $file1->getActiveSheet()->getCell($org_email_column.$current);
 			$phone = $file1->getActiveSheet()->getCell($org_phone_column.$current);
+			if (!empty((string)$phone)) {
+				try {
+					$phoneNumberObject = $phoneNumberUtil->parse( (string)$phone, 'US' );
+					$phone = $phoneNumberUtil->format( $phoneNumberObject, \libphonenumber\PhoneNumberFormat::NATIONAL );
+				} catch (\libphonenumber\NumberParseException $e) {
+					//do nothing, just do not format the number, sometimes other things are in the phone column
+
+				}
+			}
+
 			$disc  = $file1->getActiveSheet()->getCell($org_disc_column.$current);
 
-			$org_class_date  = $file1->getActiveSheet()->getCell($org_class_date_column.$current)->getFormattedValue();
+			$org_class_date_raw  = $file1->getActiveSheet()->getCell($org_class_date_column.$current)->getFormattedValue();
 			$org_class_location  = $file1->getActiveSheet()->getCell($org_class_location_column.$current);
 			$org_options  = $file1->getActiveSheet()->getCell($org_options_column.$current);
+
+			if (is_numeric($org_class_date_raw)) {
+				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($org_class_date_raw);
+				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$org_class_date = $start->format('m/d/Y H:i');
+			} else if ($org_class_date_raw) {
+
+				$start = Carbon::parse($org_class_date_raw,$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$org_class_date = $start->format('m/d/Y H:i:s');
+			} else {
+				$org_class_date = '';
+			}
 
 
 			$sep_spreadsheet->getActiveSheet()->setCellValue($out_fname_column.$row,$fname);
@@ -337,11 +451,45 @@ function do_stuff() {
 			$lname = $file1->getActiveSheet()->getCell($org_lname_column.$current);
 			$email = $file1->getActiveSheet()->getCell($org_email_column.$current);
 			$phone = $file1->getActiveSheet()->getCell($org_phone_column.$current);
+
+			if (!empty((string)$phone)) {
+				try {
+					$phoneNumberObject = $phoneNumberUtil->parse( (string)$phone, 'US' );
+					$phone = $phoneNumberUtil->format( $phoneNumberObject, \libphonenumber\PhoneNumberFormat::NATIONAL );
+				} catch (\libphonenumber\NumberParseException $e) {
+					//do nothing, just do not format the number, sometimes other things are in the phone column
+
+				}
+			}
+
 			$disc  = $file1->getActiveSheet()->getCell($org_disc_column.$current);
 
-			$org_class_date  = $file1->getActiveSheet()->getCell($org_class_date_column.$current)->getFormattedValue();
+			$org_class_date_raw  = $file1->getActiveSheet()->getCell($org_class_date_column.$current)->getFormattedValue();
 			$org_class_location  = $file1->getActiveSheet()->getCell($org_class_location_column.$current);
-			$org_options  = $file1->getActiveSheet()->getCell($org_options_column.$current);
+			$org_options  = trim($file1->getActiveSheet()->getCell($org_options_column.$current));
+
+			if (is_numeric($org_class_date_raw)) {
+				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($org_class_date_raw);
+				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$org_class_date = $start->format('m/d/Y H:i');
+			} else if ($org_class_date_raw) {
+
+				$start = Carbon::parse($org_class_date_raw,$timezone);
+				if ($start->second === 59) {
+					$start->addSecond(1); //rounding from spreadsheet
+				}
+				$org_class_date = $start->format('m/d/Y H:i:s');
+			} else {
+				$org_class_date = '';
+			}
+
+
+
+
+
 
 
 			$sep_spreadsheet->getActiveSheet()->setCellValue($out_fname_column.$row,$fname);
@@ -366,14 +514,14 @@ function do_stuff() {
 			$writer->setEnclosure('"');
 			$writer->setLineEnding("\n");
 			$writer->setSheetIndex(0);
-			$seperate_file_name = "$out_file_name.seperate.csv";
+			$seperate_file_name = "yet_to_renew.csv";
 			$seperate_file_path = "$temp_dir/$seperate_file_name";
 			$writer->save($seperate_file_path);
 		} else {
 			//make a spreadsheet
 			$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($sep_spreadsheet);
 
-			$seperate_file_name = "$out_file_name.seperate.xlsx";
+			$seperate_file_name = "yet_to_renew.xlsx";
 			$seperate_file_path = "$temp_dir/$seperate_file_name";
 			$writer->save($seperate_file_path);
 		}

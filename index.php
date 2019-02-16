@@ -104,7 +104,7 @@ if ($_POST) {
 				<fieldset class="section-b">
 					<h2 class="fs-title">Current Period Registration Report (XLS, XLSX or CSV)</h2>
                     <input type="file" class="to_file" name="file2"/>
-                    <input type="text" class="form-control" name="out_file_name" placeholder="Please Enter the new name of output file" />
+                    <input type="text" class="form-control" name="out_file_name" placeholder="Name of output zip file? Will be 'output' if blank" />
 
                     <div>
 						<?php foreach ($fields as $field) { ?>

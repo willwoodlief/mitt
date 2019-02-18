@@ -242,11 +242,17 @@ function do_stuff() {
 				$org_class_date = $start->format('m/d/Y H:i');
 			} else if ($org_class_date_raw) {
 
-				$start = Carbon::parse($org_class_date_raw,$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
+				try {
+					$start = Carbon::parse( $org_class_date_raw, $timezone );
+					if ( $start->second === 59 ) {
+						$start->addSecond( 1 ); //rounding from spreadsheet
+					}
+					$org_class_date = $start->format( 'm/d/Y H:i:s' );
+				} catch (Exception $de) {
+					$da = 'Skipping Date! '.$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
+					error_log($da);
+					$org_class_date = '';
 				}
-				$org_class_date = $start->format('m/d/Y H:i:s');
 
 			} else {
 				$org_class_date = '';
@@ -263,11 +269,19 @@ function do_stuff() {
 
 			} else if ($cur_class_date_raw) {
 
-				$start = Carbon::parse($cur_class_date_raw,$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
+				try {
+					$start = Carbon::parse($cur_class_date_raw,$timezone);
+					if ($start->second === 59) {
+						$start->addSecond(1); //rounding from spreadsheet
+					}
+					$cur_class_date = $start->format('m/d/Y H:i');
+				} catch (Exception $de) {
+					$da = 'Skipping date! ' . $de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
+					error_log($da);
+					$cur_class_date = '';
 				}
-				$cur_class_date = $start->format('m/d/Y H:i');
+
+
 			} else {
 				$cur_class_date = '';
 			}
@@ -423,11 +437,17 @@ function do_stuff() {
 				$org_class_date = $start->format('m/d/Y H:i');
 			} else if ($org_class_date_raw) {
 
-				$start = Carbon::parse($org_class_date_raw,$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
+				try {
+					$start = Carbon::parse( $org_class_date_raw, $timezone );
+					if ( $start->second === 59 ) {
+						$start->addSecond( 1 ); //rounding from spreadsheet
+					}
+					$org_class_date = $start->format( 'm/d/Y H:i' );
+				} catch (Exception $de) {
+					$da = 'Skipping Date! '.$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
+					error_log($da);
+					$org_class_date = '';
 				}
-				$org_class_date = $start->format('m/d/Y H:i');
 			} else {
 				$org_class_date = '';
 			}
@@ -477,11 +497,18 @@ function do_stuff() {
 				$org_class_date = $start->format('m/d/Y H:i');
 			} else if ($org_class_date_raw) {
 
-				$start = Carbon::parse($org_class_date_raw,$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
+				try {
+					$start = Carbon::parse($org_class_date_raw,$timezone);
+					if ($start->second === 59) {
+						$start->addSecond(1); //rounding from spreadsheet
+					}
+					$org_class_date = $start->format('m/d/Y H:i');
+				} catch (Exception $de) {
+					$da = 'Skipping Date! '.$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
+					error_log($da);
+					$org_class_date = '';
 				}
-				$org_class_date = $start->format('m/d/Y H:i');
+
 			} else {
 				$org_class_date = '';
 			}
@@ -579,7 +606,7 @@ function do_stuff() {
 
 		exit;
 	} catch (Exception $e) {
-		$da = $e->getMessage() ."\n" . $e->getFile() .' line' . $e->getLine() . "\n" . $e->getTraceAsString();
+		$da = $e->getMessage() ."\n" . $e->getFile() .' line ' . $e->getLine() . "\n" . $e->getTraceAsString();
 		error_log($da);
 		return $da;
 	}

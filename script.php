@@ -8,8 +8,12 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 ini_set( 'log_errors', 1 );
 $debug_log_path = __DIR__ . '/debug.log';
-ini_set( 'error_log',$debug_log_path  );
 
+if (!is_writable($debug_log_path)) {
+	die('Debug Log Not Writable at '. $debug_log_path);
+}
+ini_set( 'error_log',$debug_log_path  );
+$timezone = 'America/Los_Angeles';
 
 
 use Carbon\Carbon;
@@ -17,7 +21,6 @@ use Carbon\Carbon;
  * @return string
  */
 function do_stuff() {
-	$timezone = 'America/Los_Angeles';
 	try {
 		$from_file     = $_FILES['file1']['tmp_name'];
 		$to_file       = $_FILES['file2']['tmp_name'];
@@ -233,58 +236,9 @@ function do_stuff() {
 			$org_class_date_raw  = (string)$file1->getActiveSheet()->getCell($org_class_date_column.$original)->getFormattedValue();
 			$cur_class_date_raw  = (string)$file2->getActiveSheet()->getCell($cur_class_date_column.$current)->getFormattedValue();
 
-			if (is_numeric($org_class_date_raw)) {
-				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($org_class_date_raw);
-				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
-				}
-				$org_class_date = $start->format('m/d/Y H:i');
-			} else if ($org_class_date_raw) {
+			$org_class_date = format_date($org_class_date_raw);
+			$cur_class_date = format_date($cur_class_date_raw);
 
-				try {
-					$start = Carbon::parse( $org_class_date_raw, $timezone );
-					if ( $start->second === 59 ) {
-						$start->addSecond( 1 ); //rounding from spreadsheet
-					}
-					$org_class_date = $start->format( 'm/d/Y H:i:s' );
-				} catch (Exception $de) {
-					$da = 'Skipping Date! '.$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
-					error_log($da);
-					$org_class_date = '';
-				}
-
-			} else {
-				$org_class_date = '';
-			}
-
-
-			if (is_numeric($cur_class_date_raw)) {
-				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($cur_class_date_raw);
-				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
-				}
-				$cur_class_date = $start->format('m/d/Y H:i');
-
-			} else if ($cur_class_date_raw) {
-
-				try {
-					$start = Carbon::parse($cur_class_date_raw,$timezone);
-					if ($start->second === 59) {
-						$start->addSecond(1); //rounding from spreadsheet
-					}
-					$cur_class_date = $start->format('m/d/Y H:i');
-				} catch (Exception $de) {
-					$da = 'Skipping date! ' . $de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
-					error_log($da);
-					$cur_class_date = '';
-				}
-
-
-			} else {
-				$cur_class_date = '';
-			}
 
 
 			$common_spreadsheet->getActiveSheet()->setCellValue($out_fname_column.$row,$fname);
@@ -427,30 +381,8 @@ function do_stuff() {
 			$org_class_date_raw  = $file1->getActiveSheet()->getCell($org_class_date_column.$current)->getFormattedValue();
 			$org_class_location  = $file1->getActiveSheet()->getCell($org_class_location_column.$current);
 			$org_options  = $file1->getActiveSheet()->getCell($org_options_column.$current);
+			$org_class_date = format_date($org_class_date_raw);
 
-			if (is_numeric($org_class_date_raw)) {
-				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($org_class_date_raw);
-				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
-				}
-				$org_class_date = $start->format('m/d/Y H:i');
-			} else if ($org_class_date_raw) {
-
-				try {
-					$start = Carbon::parse( $org_class_date_raw, $timezone );
-					if ( $start->second === 59 ) {
-						$start->addSecond( 1 ); //rounding from spreadsheet
-					}
-					$org_class_date = $start->format( 'm/d/Y H:i' );
-				} catch (Exception $de) {
-					$da = 'Skipping Date! '.$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
-					error_log($da);
-					$org_class_date = '';
-				}
-			} else {
-				$org_class_date = '';
-			}
 
 
 			$sep_spreadsheet->getActiveSheet()->setCellValue($out_fname_column.$row,$fname);
@@ -487,33 +419,7 @@ function do_stuff() {
 			$org_class_date_raw  = $file1->getActiveSheet()->getCell($org_class_date_column.$current)->getFormattedValue();
 			$org_class_location  = $file1->getActiveSheet()->getCell($org_class_location_column.$current);
 			$org_options  = trim($file1->getActiveSheet()->getCell($org_options_column.$current));
-
-			if (is_numeric($org_class_date_raw)) {
-				$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($org_class_date_raw);
-				$start = Carbon::parse($date_time->format('m/d/Y H:i:s'),$timezone);
-				if ($start->second === 59) {
-					$start->addSecond(1); //rounding from spreadsheet
-				}
-				$org_class_date = $start->format('m/d/Y H:i');
-			} else if ($org_class_date_raw) {
-
-				try {
-					$start = Carbon::parse($org_class_date_raw,$timezone);
-					if ($start->second === 59) {
-						$start->addSecond(1); //rounding from spreadsheet
-					}
-					$org_class_date = $start->format('m/d/Y H:i');
-				} catch (Exception $de) {
-					$da = 'Skipping Date! '.$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
-					error_log($da);
-					$org_class_date = '';
-				}
-
-			} else {
-				$org_class_date = '';
-			}
-
-
+			$org_class_date = format_date($org_class_date_raw);
 
 
 
@@ -756,6 +662,67 @@ function tempdir($dir = null, $prefix = 'tmp_', $mode = 0700, $maxAttempts = 100
 	);
 
 	return $path;
+}
+
+
+/**
+ * @param mixed $val
+ *
+ * @return string
+ */
+function format_date($val) {
+	global $timezone;
+
+	if (empty($val)) {return '';}
+
+	if (is_numeric($val)) {
+		try {
+			$date_time = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject( $val );
+			if (!$date_time) {
+				$ret = '';
+			} else {
+				$start     = Carbon::parse( $date_time->format( 'm/d/Y H:i:s' ), $timezone );
+				if ( $start->second === 59 ) {
+					$start->addSecond( 1 ); //rounding from spreadsheet
+				}
+				$ret = $start->format( 'm/d/Y H:i' );
+			}
+
+		} catch (Exception $de) {
+			$val_to_string = (string) $val;
+			$da = "Skipping Date! Could not parse the date numeric value of [$val_to_string]:\n ".$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
+			error_log($da);
+			$ret = '';
+		}
+
+	} else if ($val) {
+
+		try {
+			$start = Carbon::parse( $val, $timezone );
+			if ( $start->second === 59 ) {
+				$start->addSecond( 1 ); //rounding from spreadsheet
+			}
+			$ret = $start->format( 'm/d/Y H:i' );
+		} catch (Exception $de) {
+			//perhaps its the wrong format, try another format
+			try {
+				$start = Carbon::createFromFormat('d/m/y H:i', $val);
+				if ( $start->second === 59 ) {
+					$start->addSecond( 1 ); //rounding from spreadsheet
+				}
+				$ret = $start->format( 'm/d/Y H:i' );
+			} catch (Exception $hmm) {
+				$val_to_string = (string) $val;
+				$da = "Skipping Date! Could not parse [$val_to_string]:\n ".$de->getMessage() ."\n" . $de->getFile() .' line ' . $de->getLine() . "\n" . $de->getTraceAsString();
+				error_log($da);
+				$ret = '';
+			}
+		}
+	} else {
+		$ret = '';
+	}
+
+	return $ret;
 }
 
 
